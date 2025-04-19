@@ -45,6 +45,7 @@ class Calculadora:
     def click_boton(self, valor):
         if valor == 'C':
             self.operacion = ""
+            print("Operación borrada")
         elif valor == '=':
             try:
                 # Evaluar la operación matemática
@@ -66,7 +67,7 @@ class Calculadora:
         self.pantalla.insert(0, self.operacion)
         self.pantalla.config(state='readonly')
 
-def calc():
+if __name__ == "__main__":
     root = tk.Tk()
     calculadora = Calculadora(root)
     root.mainloop()

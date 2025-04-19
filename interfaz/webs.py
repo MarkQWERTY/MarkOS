@@ -5,12 +5,10 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QToolBar,
                              QWidget, QStatusBar)
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 
-_browser_windows = []  # Lista para almacenar las instancias de Browser
 class Browser(QMainWindow):
-    def __init__(self, tk_root=None, on_close_callback=None):
+    def __init__(self):
         super().__init__()
-        self.tk_root = tk_root  # Referencia opcional a ventana Tkinter
-        self.on_close_callback = on_close_callback 
+        
         self.setWindowTitle("Navegador Python")
         self.showMaximized()
         self.setWindowFlags(Qt.FramelessWindowHint)
@@ -83,18 +81,15 @@ class Browser(QMainWindow):
         container.setLayout(layout)
         self.setCentralWidget(container)
         
-        # Timer para integración con Tkinter si se proporciona
-        if self.tk_root:
-            self.timer = QTimer()
-            self.timer.timeout.connect(self.check_tkinter_root)
-            self.timer.start(100)  # Verificar cada 100ms
     
     def check_tkinter_root(self):
         """Verifica si la ventana Tkinter madre sigue abierta"""
         try:
             if not self.tk_root.winfo_exists():
+                print("salir Navegador")
                 self.close()
         except:
+            print("salir Navegador")
             self.close()
     
     def custom_minimize(self):
@@ -115,29 +110,10 @@ class Browser(QMainWindow):
     def home(self):
         self.browser.setUrl(QUrl("https://www.google.com"))
         
-    def closeEvent(self, event):
-        """Se ejecuta cuando la ventana se cierra"""
-        if self.on_close_callback:
-            self.on_close_callback()
-        super().closeEvent(event)
-        # Eliminar esta ventana de la lista global
-        if self in _browser_windows:
-            _browser_windows.remove(self)
+    
 
-def launch_browser(tk_root=None, on_close_callback=None):
-    # Reutilizar la aplicación existente o crear una nueva
-    app = QApplication.instance()
-    if not app:
-        app = QApplication(sys.argv)
-    
-    browser = Browser(tk_root, on_close_callback)
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    browser = Browser()
     browser.show()
-    
-    # Mantener referencia para evitar garbage collection
-    _browser_windows.append(browser)
-    
-    # Solo ejecutar el event loop si es la primera ventana
-    if len(_browser_windows) == 1:
-        app.exec_()
-            
-    return browser
+    sys.exit(app.exec_())
