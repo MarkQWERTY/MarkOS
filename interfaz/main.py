@@ -196,7 +196,7 @@ class MarkOS:
             elif module_name == "file":
                 folder_path = os.path.expanduser("~")
                 try:
-                    process = subprocess.Popen(["xdg-open", folder_path])
+                    process = subprocess.Popen(["thunar", folder_path])
                     self.add_app_to_taskbar("Archivos", process)
                 except Exception as e:
                     messagebox.showerror("Error", f"No se pudo abrir la carpeta: {str(e)}")
