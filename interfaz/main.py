@@ -17,7 +17,7 @@ class MarkOS:
         self.open_apps = {}
         self.app_counter = 0
 
-        self.PYROUTE = "C:/Users/cuent/AppData/Local/Microsoft/WindowsApps/python3.11.exe"
+        # self.PYROUTE = "C:/Users/cuent/AppData/Local/Microsoft/WindowsApps/python3.11.exe"
         self.SYS_PATH = os.path.dirname(os.path.abspath(__file__))
         self.BG_COLOR = 'khaki1'
         self.BTN_COLOR = 'gray'
@@ -99,7 +99,7 @@ class MarkOS:
         start_btn.pack(side='left', padx=(5,0))
 
         # Frame directo para las apps, sin scroll
-        self.apps_frame = tk.Frame(self.taskbar, bg='#2d2d2d', height=40)
+        self.apps_frame = tk.Frame(self.taskbar, bg='#2d2d2d', height=80)
         self.apps_frame.pack(side='left', padx=(5,0), fill='y')
         
         # Hora y fecha compacta
@@ -191,7 +191,7 @@ class MarkOS:
                 if os.name == 'nt':
                     process = subprocess.Popen(["cmd.exe"])
                 else:
-                    process = subprocess.Popen(["x-terminal-emulator"])
+                    process = subprocess.Popen(["konsole"])
                 self.add_app_to_taskbar("Terminal", process)
             elif module_name == "file":
                 folder_path = os.path.expanduser("~")
@@ -201,7 +201,7 @@ class MarkOS:
                 except Exception as e:
                     messagebox.showerror("Error", f"No se pudo abrir la carpeta: {str(e)}")
             else:
-                process = subprocess.Popen([self.PYROUTE, f"{self.SYS_PATH}/{module_name}.py"])
+                process = subprocess.Popen(f"python {self.SYS_PATH}/{module_name}.py")
                 self.add_app_to_taskbar(module_name.capitalize(), process)
                 
         except Exception as e:
