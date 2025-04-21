@@ -201,7 +201,7 @@ class MarkOS:
                 except Exception as e:
                     messagebox.showerror("Error", f"No se pudo abrir la carpeta: {str(e)}")
             else:
-                process = subprocess.Popen(f"python {self.SYS_PATH}/{module_name}.py")
+                process = subprocess.Popen(f"python {module_name}.py")
                 self.add_app_to_taskbar(module_name.capitalize(), process)
                 
         except Exception as e:
