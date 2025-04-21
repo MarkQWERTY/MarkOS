@@ -3,20 +3,21 @@ from tkinter import messagebox
 import time
 import os
 import subprocess
-from PIL import Image, ImageTk
+import psutil
 
 class MarkOS:
     def __init__(self, root):
         self.root = root
         self.root.title("MarkOS")
-        self.root.attributes("-fullscreen", True)
+        self.root.attributes('-fullscreen', True)
+        self.root.protocol("WM_DELETE_WINDOW", self.root.quit)
         self.root.configure()
 
         # Diccionario para rastrear aplicaciones abiertas
-        self.open_apps = {}  # {app_id: {"name": str, "frame": tk.Frame, "close_fn": callable}}
-        self.app_counter = 0  # Contador para IDs únicos
+        self.open_apps = {}
+        self.app_counter = 0
 
-        self.PYROUTE =  "C:/Users/cuent/AppData/Local/Microsoft/WindowsApps/python3.11.exe"
+        self.PYROUTE = "C:/Users/cuent/AppData/Local/Microsoft/WindowsApps/python3.11.exe"
         self.SYS_PATH = os.path.dirname(os.path.abspath(__file__))
         self.BG_COLOR = 'khaki1'
         self.BTN_COLOR = 'gray'
@@ -45,10 +46,11 @@ class MarkOS:
 
         apps = [
             ("⚙️ Configuración", self.open_settings),
-            ("🌐 Navegador", lambda: self.open_app("Navegador", "webs")),
-            ("📁 Archivos", self.open_file_manager),
-            ("📟 Terminal", self.open_terminal),
-            ("🧮 Calculadora", lambda: self.open_app("Calculadora", "calc"))
+            ("🌐 Navegador", lambda: self.open_app("webs")),
+            ("📁 Archivos", lambda: self.open_app("file")),
+            ("📟 Terminal", lambda: self.open_app("terminal")),
+            ("🧮 Calculadora", lambda: self.open_app("calc")),
+            (" Ejecutar", lambda: self.open_app("ejecutar")),
         ]
 
         btn_style = {
@@ -69,156 +71,142 @@ class MarkOS:
             btn.bind("<Leave>", lambda e, b=btn: b.config(bg=self.BTN_COLOR))
 
     def create_taskbar(self):
-        # Barra de tareas más alta (120px) con mejor diseño
-        self.taskbar = tk.Frame(self.root, bg='seagreen2', height=120)
+        # Barra de tareas más pequeña (40px) como Windows
+        self.taskbar = tk.Frame(self.root, bg='#2d2d2d', height=80)
         self.taskbar.grid(row=1, column=0, sticky="sew")
 
-        # Botón Inicio con menú (diseño mejorado)
+        # Botón Inicio minimalista
         start_btn = tk.Menubutton(
             self.taskbar,
-            text=" Inicio ",
-            bg='seagreen3',
+            text=" 🏠 ",
+            bg='#2d2d2d',
             fg='white',
-            font=('Segoe UI', 12, 'bold'),
+            font=('Segoe UI', 10),
             bd=0,
             relief='flat',
             padx=10,
-            pady=5
+            pady=0
         )
-        start_menu = tk.Menu(start_btn, tearoff=0, bg='gray20', fg='white')
+        start_menu = tk.Menu(start_btn, tearoff=0, bg='#2d2d2d', fg='white')
 
-        power_menu = tk.Menu(start_menu, tearoff=0, bg='gray20', fg='white')
+        power_menu = tk.Menu(start_menu, tearoff=0, bg='#2d2d2d', fg='white')
         power_menu.add_command(label="Apagar", command=self.shutdown)
         power_menu.add_command(label="Reiniciar", command=self.reboot)
 
         start_menu.add_cascade(label="Energía", menu=power_menu)
         start_menu.add_command(label="Salir", command=self.root.quit)
         start_btn.config(menu=start_menu)
-        start_btn.pack(side='left', padx=10, pady=10)
+        start_btn.pack(side='left', padx=(5,0))
 
-        # Frame para aplicaciones abiertas (con scrollbar si es necesario)
-        self.apps_container = tk.Frame(self.taskbar, bg='seagreen2')
-        self.apps_container.pack(side='left', expand=True, fill='both')
-
-        # Hora y fecha con mejor diseño
+        # Frame directo para las apps, sin scroll
+        self.apps_frame = tk.Frame(self.taskbar, bg='#2d2d2d', height=40)
+        self.apps_frame.pack(side='left', padx=(5,0), fill='y')
+        
+        # Hora y fecha compacta
         self.time_label = tk.Label(
             self.taskbar,
-            font=('Segoe UI', 12, 'bold'),
-            bg='seagreen3',
+            font=('Segoe UI', 9),
+            bg='#2d2d2d',
             fg='white',
-            padx=15,
-            pady=5
-        )
-        self.time_label.pack(side='right', padx=10, pady=10)
-
-    def add_app_to_taskbar(self, app_name, close_command=None):
-        """Añade una aplicación a la barra de tareas con botón de cierre"""
-        app_id = f"{app_name}_{self.app_counter}"
-        self.app_counter += 1
-
-        # Frame para cada aplicación
-        app_frame = tk.Frame(self.apps_container, bg='seagreen2')
-        app_frame.pack(side='left', padx=5)
-
-        # Botón de la aplicación
-        app_btn = tk.Button(
-            app_frame,
-            text=app_name,
-            bg='seagreen3',
-            fg='white',
-            font=('Segoe UI', 10),
-            bd=0,
-            relief='flat',
             padx=10,
-            pady=5,
-            command=lambda: self.focus_app(app_id)
+            pady=0
         )
-        app_btn.pack(side='left')
+        self.time_label.pack(side='right')
 
-        # Botón de cerrar
-        close_btn = tk.Button(
-            app_frame,
-            text=" × ",
-            bg='seagreen3',
+    def add_app_to_taskbar(self, app_name, process):
+        app_id = self.app_counter
+        self.app_counter += 1
+        
+        # Botón compacto para la barra de tareas
+        btn_frame = tk.Frame(self.apps_frame, bg='#2d2d2d', padx=0, pady=0)
+        btn_frame.pack(side='left', padx=(0,1))
+        
+        btn = tk.Button(
+            btn_frame,
+            text=f" {app_name[:12]} ",
+            bg='#3e3e3e',
             fg='white',
-            font=('Segoe UI', 10, 'bold'),
+            font=('Segoe UI', 9),
             bd=0,
             relief='flat',
+            padx=5,
+            pady=2,
+            command=lambda: self.focus_or_show_app(app_id)
+        )
+        btn.pack(side='left')
+        
+        # Botón de cerrar pequeño
+        close_btn = tk.Button(
+            btn_frame,
+            text="×",
+            bg='#3e3e3e',
+            fg='white',
+            font=('Segoe UI', 9),
+            bd=0,
+            relief='flat',
+            padx=0,
+            pady=0,
+            width=2,
             command=lambda: self.close_app(app_id)
         )
-        close_btn.pack(side='left', padx=(0,5))
-
-        # Guardar referencia en el diccionario
+        close_btn.pack(side='left', padx=(0,2))
+        
+        # Guardar información de la aplicación
         self.open_apps[app_id] = {
             "name": app_name,
-            "frame": app_frame,
-            "buttons": (app_btn, close_btn),
-            "close_fn": close_command
+            "process": process,
+            "button": btn,
+            "close_btn": close_btn,
+            "frame": btn_frame
         }
 
-        return app_id
-
     def close_app(self, app_id):
-        """Cierra una aplicación y la remueve de la barra de tareas"""
         if app_id in self.open_apps:
-            app_data = self.open_apps[app_id]
-
-            # try:
-            #     subprocess.run(["taskkill", "/F", "/IM", app_id], check=True)
-            #     print(f"Proceso {app_id} terminado.")
-            # except subprocess.CalledProcessError:
-            #     print(f"No se pudo terminar {app_id}.")
-
-            # Eliminar widgets de la barra
-            app_data["frame"].destroy()
-
-            # Eliminar del diccionario
+            app_info = self.open_apps[app_id]
+            try:
+                parent = psutil.Process(app_info["process"].pid)
+                for child in parent.children(recursive=True):
+                    child.terminate()
+                parent.terminate()
+            except Exception as e:
+                print(f"Error al cerrar la aplicación: {e}")
+            
+            # Eliminar los widgets de la barra de tareas
+            app_info["frame"].destroy()
+            
+            # Eliminar de la lista de aplicaciones abiertas
             del self.open_apps[app_id]
 
-    def focus_app(self, app_id):
-        """Enfoca la aplicación (placeholder para implementación futura)"""
-        print(f"Enfocando aplicación: {app_id}")
-
     def update_clock(self):
-        """Actualiza la hora en la barra de tareas"""
         self.time_label.config(text=time.strftime("%H:%M | %d/%m/%Y"))
         self.root.after(1000, self.update_clock)
 
-    # Funciones de aplicaciones
     def open_settings(self):
         messagebox.showinfo("Configuración", "Sistema de configuración abierto")
-        self.add_app_to_taskbar("Configuración")
+        # No añadimos configuración a la barra de tareas ya que es un messagebox
 
-    def open_file_manager(self):
+    def open_app(self, module_name):
         try:
-            if os.name == 'nt':
-                os.startfile(os.path.expanduser("~"))
+            if module_name == "terminal":
+                if os.name == 'nt':
+                    process = subprocess.Popen(["cmd.exe"])
+                else:
+                    process = subprocess.Popen(["x-terminal-emulator"])
+                self.add_app_to_taskbar("Terminal", process)
+            elif module_name == "file":
+                folder_path = os.path.expanduser("~")
+                try:
+                    process = subprocess.Popen(["xdg-open", folder_path])
+                    self.add_app_to_taskbar("Archivos", process)
+                except Exception as e:
+                    messagebox.showerror("Error", f"No se pudo abrir la carpeta: {str(e)}")
             else:
-                subprocess.Popen(["xdg-open", os.path.expanduser("~")])
-            self.add_app_to_taskbar("Archivos")
+                process = subprocess.Popen([self.PYROUTE, f"{self.SYS_PATH}/{module_name}.py"])
+                self.add_app_to_taskbar(module_name.capitalize(), process)
+                
         except Exception as e:
-            messagebox.showerror("Error", f"No se pudo abrir el gestor de archivos: {str(e)}")
+            messagebox.showerror("Error", f"No se pudo abrir la aplicación: {str(e)}")
 
-    def open_terminal(self):
-        try:
-            if os.name == 'nt':
-                os.system("start cmd")
-            else:
-                subprocess.Popen(["x-terminal-emulator"])
-            self.add_app_to_taskbar("Terminal")
-        except Exception as e:
-            messagebox.showerror("Error", f"No se pudo abrir la terminal: {str(e)}")
-
-    def open_app(self, display_name, module_name):
-        subprocess.Popen([f"{self.PYROUTE}", f"{self.SYS_PATH}/{module_name}.py"])
-        app_id = self.add_app_to_taskbar(display_name, lambda: self.close_app(app_id))
-        while True:
-            comando = input("->")  # Simula una terminal tipo Unix
-            if comando == f"salir {display_name}":
-                self.close_app(app_id)
-                break
-
-    # Funciones de energía
     def shutdown(self):
         if messagebox.askyesno("Apagar", "¿Desea apagar el sistema?"):
             try:
