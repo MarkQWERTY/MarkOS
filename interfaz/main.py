@@ -222,6 +222,9 @@ class MarkOS:
                 self.window_manager.focus_window(app_name)
                 app_info["window_state"] = "visible"
                 app_info["button"].config(bg='#3e3e3e')  # Color normal cuando está visible
+                # Forzar el enfoque de la ventana principal de MarkOS
+                self.root.attributes('-topmost', True)
+                self.root.attributes('-topmost', False)
         except Exception as e:
             print(f"Error al alternar ventana: {e}")
             self.window_manager.focus_window(app_name)
