@@ -50,7 +50,7 @@ class MarkOS:
             ("📁 Archivos", lambda: self.open_app("file")),
             ("📟 Terminal", lambda: self.open_app("terminal")),
             ("🧮 Calculadora", lambda: self.open_app("calc")),
-            (" Ejecutar", lambda: self.open_app("ejecutar")),
+            ("Ejecutar", lambda: self.open_app("ejecutar")),
             ("Spotify", lambda: self.open_app("spotify")),
             ("Telegram", lambda: self.open_app("telegram-desktop"))
         ]

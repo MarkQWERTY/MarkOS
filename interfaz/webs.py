@@ -12,7 +12,7 @@ class Browser(QMainWindow):
         self.setWindowTitle("Navegador")
         self.showMaximized()
         # self.setWindowFlags(Qt.FramelessWindowHint)
-        self.geometry("800x600")
+        self.setGeometry(1, 1, 1000, 800) 
 
         self.setStyleSheet("""
             QMainWindow {
