@@ -101,7 +101,8 @@ class MarkOS:
             ("🧮 Calculadora", lambda: self.open_app("calc")),
             ("Ejecutar", lambda: self.open_app("ejecutar")),
             ("Spotify", lambda: self.open_app("spotify")),
-            ("Telegram", lambda: self.open_app("telegram-desktop"))
+            ("Telegram", lambda: self.open_app("telegram-desktop")),
+            ("Office", lambda: self.open_app("docs"))
         ]
 
         btn_style = {
@@ -284,8 +285,7 @@ class MarkOS:
                         process = subprocess.Popen(["telegram-desktop", "--title=Telegram"])
                     self.add_app_to_taskbar("Telegram", process)
                 except Exception as e:
-                    messagebox.showerror("Error", f"No se pudo abrir Telegram: {str(e)}")
-                    
+                    messagebox.showerror("Error", f"No se pudo abrir Telegram: {str(e)}")       
             else:
                 script_path = os.path.join(self.SYS_PATH, f"{module_name}.py")
                 if os.name == 'nt':

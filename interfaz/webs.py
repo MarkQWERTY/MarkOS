@@ -110,8 +110,6 @@ class Browser(QMainWindow):
     
     def home(self):
         self.browser.setUrl(QUrl("https://www.google.com"))
-        
-    
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
