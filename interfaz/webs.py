@@ -9,9 +9,10 @@ class Browser(QMainWindow):
     def __init__(self):
         super().__init__()
         
-        self.setWindowTitle("Navegador Python")
+        self.setWindowTitle("Navegador")
         self.showMaximized()
-        self.setWindowFlags(Qt.FramelessWindowHint)
+        # self.setWindowFlags(Qt.FramelessWindowHint)
+        self.geometry("800x600")
 
         self.setStyleSheet("""
             QMainWindow {
@@ -56,18 +57,18 @@ class Browser(QMainWindow):
         go_btn.clicked.connect(self.navigate_to_url)
         navbar.addWidget(go_btn)
 
-        close_btn = QPushButton("❌")
-        close_btn.clicked.connect(self.close)
-        navbar.addWidget(close_btn)
+        # close_btn = QPushButton("❌")
+        # close_btn.clicked.connect(self.close)
+        # navbar.addWidget(close_btn)
 
-        maximize_btn = QPushButton("⛶")
-        maximize_btn.clicked.connect(self.showFullScreen)
-        navbar.addWidget(maximize_btn)
+        # maximize_btn = QPushButton("⛶")
+        # maximize_btn.clicked.connect(self.showFullScreen)
+        # navbar.addWidget(maximize_btn)
         
         
-        minimize_btn = QPushButton("➖")
-        minimize_btn.clicked.connect(self.custom_minimize)
-        navbar.addWidget(minimize_btn)
+        # minimize_btn = QPushButton("➖")
+        # minimize_btn.clicked.connect(self.custom_minimize)
+        # navbar.addWidget(minimize_btn)
         
         self.browser.urlChanged.connect(self.update_url)
         

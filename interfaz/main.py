@@ -52,7 +52,7 @@ class MarkOS:
             ("🧮 Calculadora", lambda: self.open_app("calc")),
             (" Ejecutar", lambda: self.open_app("ejecutar")),
             ("Spotify", lambda: self.open_app("spotify")),
-            ("Telegram", lambda: self.open_app("telegram"))
+            ("Telegram", lambda: self.open_app("telegram-desktop"))
         ]
 
         btn_style = {
@@ -193,12 +193,12 @@ class MarkOS:
                 if os.name == 'nt':
                     process = subprocess.Popen(["cmd.exe"])
                 else:
-                    process = subprocess.Popen(["konsole"])
+                    process = subprocess.Popen(["gnome-terminal"])
                 self.add_app_to_taskbar("Terminal", process)
             elif module_name == "file":
                 folder_path = os.path.expanduser("~")
                 try:
-                    process = subprocess.Popen(["thunar", folder_path])
+                    process = subprocess.Popen(["nautilus", folder_path])
                     self.add_app_to_taskbar("Archivos", process)
                 except Exception as e:
                     messagebox.showerror("Error", f"No se pudo abrir la carpeta: {str(e)}")
