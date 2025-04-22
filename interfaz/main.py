@@ -17,7 +17,7 @@ class MarkOS:
         self.open_apps = {}
         self.app_counter = 0
 
-        # self.PYROUTE = "C:/Users/cuent/AppData/Local/Microsoft/WindowsApps/python3.11.exe"
+        self.PYROUTE = "C:/Users/cuent/AppData/Local/Microsoft/WindowsApps/python3.11.exe"
         self.SYS_PATH = os.path.dirname(os.path.abspath(__file__))
         self.BG_COLOR = 'khaki1'
         self.BTN_COLOR = 'gray'
@@ -51,6 +51,8 @@ class MarkOS:
             ("📟 Terminal", lambda: self.open_app("terminal")),
             ("🧮 Calculadora", lambda: self.open_app("calc")),
             (" Ejecutar", lambda: self.open_app("ejecutar")),
+            ("Spotify", lambda: self.open_app("spotify")),
+            ("Telegram", lambda: self.open_app("telegram"))
         ]
 
         btn_style = {
@@ -72,7 +74,7 @@ class MarkOS:
 
     def create_taskbar(self):
         # Barra de tareas más pequeña (40px) como Windows
-        self.taskbar = tk.Frame(self.root, bg='#2d2d2d', height=80)
+        self.taskbar = tk.Frame(self.root, bg='#2d2d2d', height=75)
         self.taskbar.grid(row=1, column=0, sticky="sew")
 
         # Botón Inicio minimalista
@@ -129,7 +131,7 @@ class MarkOS:
             font=('Segoe UI', 9),
             bd=0,
             relief='flat',
-            padx=5,
+            padx=10,
             pady=2,
             command=lambda: self.focus_or_show_app(app_id)
         )
@@ -144,7 +146,7 @@ class MarkOS:
             font=('Segoe UI', 9),
             bd=0,
             relief='flat',
-            padx=0,
+            padx=10,
             pady=0,
             width=2,
             command=lambda: self.close_app(app_id)
@@ -200,8 +202,13 @@ class MarkOS:
                     self.add_app_to_taskbar("Archivos", process)
                 except Exception as e:
                     messagebox.showerror("Error", f"No se pudo abrir la carpeta: {str(e)}")
+            elif module_name == "spotify":
+                try:
+                    process = subprocess.Popen("spotify")
+                except Exception as e:
+                    messagebox.showerror("Error", f"No se pudo abrir la carpeta: {str(e)}")
             else:
-                process = subprocess.run(["python", os.path.join(self.SYS_PATH, f"{module_name}.py")])
+                process = subprocess.Popen(["python3", os.path.join(self.SYS_PATH, f"{module_name}.py")])
                 self.add_app_to_taskbar(module_name.capitalize(), process)
                 
         except Exception as e:
