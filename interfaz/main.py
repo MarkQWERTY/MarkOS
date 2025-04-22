@@ -12,23 +12,45 @@ class WindowManager:
     def focus_window(self, window_title):
         """Enfoca una ventana por su título"""
         try:
-            subprocess.run(["wmctrl", "-a", window_title])
+            if os.name == 'nt':
+                import win32gui
+                import win32con
+                window = win32gui.FindWindow(None, window_title)
+                if window:
+                    win32gui.ShowWindow(window, win32con.SW_RESTORE)
+                    win32gui.SetForegroundWindow(window)
+            else:
+                subprocess.run(["wmctrl", "-a", window_title])
         except Exception as e:
             print(f"Error al enfocar ventana: {e}")
     
     def minimize_window(self, window_title):
         """Minimiza una ventana por su título"""
         try:
-            subprocess.run(["xdotool", "search", "--name", window_title, "windowminimize"])
+            if os.name == 'nt':
+                import win32gui
+                import win32con
+                window = win32gui.FindWindow(None, window_title)
+                if window:
+                    win32gui.ShowWindow(window, win32con.SW_MINIMIZE)
+            else:
+                subprocess.run(["xdotool", "search", "--name", window_title, "windowminimize"])
         except Exception as e:
             print(f"Error al minimizar ventana: {e}")
     
     def get_window_state(self, window_title):
-        """Obtiene el estado de una ventana (simplificado)"""
+        """Obtiene el estado de una ventana"""
         try:
-            result = subprocess.run(["xdotool", "search", "--name", window_title], 
-                                  capture_output=True, text=True)
-            return "exists" if result.stdout else "not_found"
+            if os.name == 'nt':
+                import win32gui
+                window = win32gui.FindWindow(None, window_title)
+                if window:
+                    return "exists"
+                return "not_found"
+            else:
+                result = subprocess.run(["xdotool", "search", "--name", window_title], 
+                                      capture_output=True, text=True)
+                return "exists" if result.stdout else "not_found"
         except Exception as e:
             print(f"Error al verificar estado de ventana: {e}")
             return "error"
@@ -39,14 +61,12 @@ class MarkOS:
         self.root.title("MarkOS")
         self.root.attributes('-fullscreen', True)
         self.root.protocol("WM_DELETE_WINDOW", self.root.quit)
-        self.root.configure()
+        
         self.window_manager = WindowManager()
-
-        # Diccionario para rastrear aplicaciones abiertas
         self.open_apps = {}
         self.app_counter = 0
 
-        self.PYROUTE = "C:/Users/cuent/AppData/Local/Microsoft/WindowsApps/python3.11.exe"
+        self.PYROUTE = "python3"
         self.SYS_PATH = os.path.dirname(os.path.abspath(__file__))
         self.BG_COLOR = 'khaki1'
         self.BTN_COLOR = 'gray'
@@ -101,6 +121,45 @@ class MarkOS:
             btn.bind("<Enter>", lambda e, b=btn: b.config(bg='gray30'))
             btn.bind("<Leave>", lambda e, b=btn: b.config(bg=self.BTN_COLOR))
 
+    def create_taskbar(self):
+        self.taskbar = tk.Frame(self.root, bg='#2d2d2d', height=75)
+        self.taskbar.grid(row=1, column=0, sticky="sew")
+
+        start_btn = tk.Menubutton(
+            self.taskbar,
+            text=" 🏠 ",
+            bg='#2d2d2d',
+            fg='white',
+            font=('Segoe UI', 10),
+            bd=0,
+            relief='flat',
+            padx=10,
+            pady=0
+        )
+        start_menu = tk.Menu(start_btn, tearoff=0, bg='#2d2d2d', fg='white')
+
+        power_menu = tk.Menu(start_menu, tearoff=0, bg='#2d2d2d', fg='white')
+        power_menu.add_command(label="Apagar", command=self.shutdown)
+        power_menu.add_command(label="Reiniciar", command=self.reboot)
+
+        start_menu.add_cascade(label="Energía", menu=power_menu)
+        start_menu.add_command(label="Salir", command=self.root.quit)
+        start_btn.config(menu=start_menu)
+        start_btn.pack(side='left', padx=(5,0))
+
+        self.apps_frame = tk.Frame(self.taskbar, bg='#2d2d2d', height=80)
+        self.apps_frame.pack(side='left', padx=(5,0), fill='y')
+        
+        self.time_label = tk.Label(
+            self.taskbar,
+            font=('Segoe UI', 9),
+            bg='#2d2d2d',
+            fg='white',
+            padx=10,
+            pady=0
+        )
+        self.time_label.pack(side='right')
+
     def add_app_to_taskbar(self, app_name, process):
         app_id = self.app_counter
         self.app_counter += 1
@@ -118,7 +177,7 @@ class MarkOS:
             relief='flat',
             padx=10,
             pady=2,
-            command=lambda: self.toggle_application(app_id)  # Cambiado para usar toggle
+            command=lambda: self.toggle_application(app_id)
         )
         btn.pack(side='left')
         
@@ -137,14 +196,13 @@ class MarkOS:
         )
         close_btn.pack(side='left', padx=(0,2))
         
-        # Guardar información adicional
         self.open_apps[app_id] = {
             "name": app_name,
             "process": process,
             "button": btn,
             "close_btn": close_btn,
             "frame": btn_frame,
-            "window_state": "visible"  # Nuevo: trackeamos estado de la ventana
+            "window_state": "visible"
         }
 
     def toggle_application(self, app_id):
@@ -156,17 +214,16 @@ class MarkOS:
         
         try:
             if app_info["window_state"] == "visible":
-                # Minimizar la ventana
-                subprocess.run(["xdotool", "search", "--name", app_name, "windowminimize"])
+                self.window_manager.minimize_window(app_name)
                 app_info["window_state"] = "minimized"
+                app_info["button"].config(bg='#2d2d2d')  # Cambia color cuando está minimizado
             else:
-                # Mostrar la ventana
-                subprocess.run(["wmctrl", "-a", app_name])
+                self.window_manager.focus_window(app_name)
                 app_info["window_state"] = "visible"
+                app_info["button"].config(bg='#3e3e3e')  # Color normal cuando está visible
         except Exception as e:
             print(f"Error al alternar ventana: {e}")
-            # Fallback: intentar enfocar
-            subprocess.run(["wmctrl", "-a", app_name])
+            self.window_manager.focus_window(app_name)
 
     def close_app(self, app_id):
         if app_id in self.open_apps:
@@ -179,10 +236,7 @@ class MarkOS:
             except Exception as e:
                 print(f"Error al cerrar la aplicación: {e}")
             
-            # Eliminar los widgets de la barra de tareas
             app_info["frame"].destroy()
-            
-            # Eliminar de la lista de aplicaciones abiertas
             del self.open_apps[app_id]
 
     def update_clock(self):
@@ -191,44 +245,53 @@ class MarkOS:
 
     def open_settings(self):
         messagebox.showinfo("Configuración", "Sistema de configuración abierto")
-        # No añadimos configuración a la barra de tareas ya que es un messagebox
 
     def open_app(self, module_name):
         try:
             if module_name == "terminal":
                 if os.name == 'nt':
-                    process = subprocess.Popen(["cmd.exe"])
+                    process = subprocess.Popen(["cmd.exe", "/k", "title Terminal"])
                 else:
-                    # Forzar el enfoque con wmctrl
                     process = subprocess.Popen(["gnome-terminal", "--title=Terminal"])
-                    # subprocess.run(["wmctrl", "-a", "Terminal"])  # Enfoca la terminal
                 self.add_app_to_taskbar("Terminal", process)
                 
             elif module_name == "file":
                 folder_path = os.path.expanduser("~")
                 try:
-                    process = subprocess.Popen(["nautilus", folder_path, "--title=Archivos"])
-                    # subprocess.run(["wmctrl", "-a"])  # Enfoca Nautilus
+                    if os.name == 'nt':
+                        process = subprocess.Popen(["explorer", folder_path])
+                    else:
+                        process = subprocess.Popen(["nautilus", folder_path, "--title=Archivos"])
                     self.add_app_to_taskbar("Archivos", process)
                 except Exception as e:
                     messagebox.showerror("Error", f"No se pudo abrir la carpeta: {str(e)}")
                     
             elif module_name == "spotify":
                 try:
-                    process = subprocess.Popen(["spotify"])
-                    subprocess.run(["wmctrl", "-a", "Spotify"])
+                    if os.name == 'nt':
+                        process = subprocess.Popen(["spotify.exe"])
+                    else:
+                        process = subprocess.Popen(["spotify", "--title=Spotify"])
+                    self.add_app_to_taskbar("Spotify", process)
                 except Exception as e:
                     messagebox.showerror("Error", f"No se pudo abrir Spotify: {str(e)}")
                     
             elif module_name == "telegram-desktop":
                 try:
-                    process = subprocess.Popen(["telegram-desktop"])
-                    subprocess.run(["wmctrl", "-a", "Telegram"])
+                    if os.name == 'nt':
+                        process = subprocess.Popen(["telegram.exe"])
+                    else:
+                        process = subprocess.Popen(["telegram-desktop", "--title=Telegram"])
+                    self.add_app_to_taskbar("Telegram", process)
                 except Exception as e:
                     messagebox.showerror("Error", f"No se pudo abrir Telegram: {str(e)}")
                     
             else:
-                process = subprocess.Popen(["python3", os.path.join(self.SYS_PATH, f"{module_name}.py")])
+                script_path = os.path.join(self.SYS_PATH, f"{module_name}.py")
+                if os.name == 'nt':
+                    process = subprocess.Popen(["python", script_path])
+                else:
+                    process = subprocess.Popen(["python3", script_path])
                 self.add_app_to_taskbar(module_name.capitalize(), process)
                 
         except Exception as e:
