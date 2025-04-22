@@ -193,25 +193,34 @@ class MarkOS:
                 if os.name == 'nt':
                     process = subprocess.Popen(["cmd.exe"])
                 else:
+                    # Forzar el enfoque con wmctrl
                     process = subprocess.Popen(["gnome-terminal"])
+                    subprocess.run(["wmctrl", "-a", "Terminal"])  # Enfoca la terminal
                 self.add_app_to_taskbar("Terminal", process)
+                
             elif module_name == "file":
                 folder_path = os.path.expanduser("~")
                 try:
                     process = subprocess.Popen(["nautilus", folder_path])
+                    subprocess.run(["wmctrl", "-a", "Archivos"])  # Enfoca Nautilus
                     self.add_app_to_taskbar("Archivos", process)
                 except Exception as e:
                     messagebox.showerror("Error", f"No se pudo abrir la carpeta: {str(e)}")
+                    
             elif module_name == "spotify":
                 try:
-                    process = subprocess.Popen("spotify")
+                    process = subprocess.Popen(["spotify"])
+                    subprocess.run(["wmctrl", "-a", "Spotify"])
                 except Exception as e:
-                    messagebox.showerror("Error", f"No se pudo abrir la carpeta: {str(e)}")
-            elif module_name == "telegran-desktop":
+                    messagebox.showerror("Error", f"No se pudo abrir Spotify: {str(e)}")
+                    
+            elif module_name == "telegram-desktop":
                 try:
-                    process = subprocess.Popen("telegram-desktop")
+                    process = subprocess.Popen(["telegram-desktop"])
+                    subprocess.run(["wmctrl", "-a", "Telegram"])
                 except Exception as e:
-                    messagebox.showerror("Error", f"No se pudo abrir la carpeta: {str(e)}")
+                    messagebox.showerror("Error", f"No se pudo abrir Telegram: {str(e)}")
+                    
             else:
                 process = subprocess.Popen(["python3", os.path.join(self.SYS_PATH, f"{module_name}.py")])
                 self.add_app_to_taskbar(module_name.capitalize(), process)
