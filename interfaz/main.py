@@ -340,26 +340,12 @@ class MarkOS(QMainWindow):
     def toggle_application(self, app_id):
         if app_id not in self.open_apps:
             return
-            
+
         app_info = self.open_apps[app_id]
         app_name = app_info["name"]
-        
+
         try:
-            if app_info["window_state"] == "visible":
-                self.window_manager.minimize_window(app_name)
-                app_info["window_state"] = "minimized"
-                app_info["button"].setStyleSheet("""
-                    QPushButton {
-                        background-color: #2d2d2d;
-                        color: white;
-                        border: none;
-                        padding: 5px 10px;
-                        font-size: 11px;
-                        max-height: 25px;
-                        border-radius: 3px;
-                    }
-                """)
-            else:
+            if app_info["window_state"] == "minimized":
                 self.window_manager.focus_window(app_name)
                 app_info["window_state"] = "visible"
                 app_info["button"].setStyleSheet("""
@@ -376,11 +362,13 @@ class MarkOS(QMainWindow):
                         background-color: #4e4e4e;
                     }
                 """)
-                # Forzar el enfoque
                 self.raise_()
                 self.activateWindow()
+            else:
+                # Ya está visible, no hacer nada (o podrías enfocarla otra vez si quieres)
+                self.window_manager.focus_window(app_name)
         except Exception as e:
-            print(f"Error al alternar ventana: {e}")
+            print(f"Error al enfocar ventana: {e}")
             self.window_manager.focus_window(app_name)
     
     def close_app(self, app_id):
