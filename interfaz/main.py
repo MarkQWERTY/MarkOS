@@ -273,7 +273,7 @@ class MarkOS:
                     if os.name == 'nt':
                         process = subprocess.Popen(["explorer", folder_path])
                     else:
-                        process = subprocess.Popen(["nautilus", folder_path, "--title=Archivos"])
+                        process = subprocess.Popen(["nautilus", folder_path])
                     self.add_app_to_taskbar("Archivos", process)
                 except Exception as e:
                     messagebox.showerror("Error", f"No se pudo abrir la carpeta: {str(e)}")
