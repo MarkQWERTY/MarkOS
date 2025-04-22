@@ -17,8 +17,16 @@ class WindowManager:
                 import win32con
                 window = win32gui.FindWindow(None, window_title)
                 if window:
+                    # Primero restaurar si está minimizada
                     win32gui.ShowWindow(window, win32con.SW_RESTORE)
+                    # Luego traer al frente
                     win32gui.SetForegroundWindow(window)
+                    # Forzar el enfoque (técnica adicional)
+                    win32gui.BringWindowToTop(window)
+                    win32gui.SetWindowPos(window, win32con.HWND_TOPMOST, 0, 0, 0, 0,
+                                        win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
+                    win32gui.SetWindowPos(window, win32con.HWND_NOTOPMOST, 0, 0, 0, 0,
+                                        win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
             else:
                 subprocess.run(["wmctrl", "-a", window_title])
         except Exception as e:
