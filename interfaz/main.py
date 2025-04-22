@@ -207,6 +207,11 @@ class MarkOS:
                     process = subprocess.Popen("spotify")
                 except Exception as e:
                     messagebox.showerror("Error", f"No se pudo abrir la carpeta: {str(e)}")
+            elif module_name == "telegran-desktop":
+                try:
+                    process = subprocess.Popen("telegram-desktop")
+                except Exception as e:
+                    messagebox.showerror("Error", f"No se pudo abrir la carpeta: {str(e)}")
             else:
                 process = subprocess.Popen(["python3", os.path.join(self.SYS_PATH, f"{module_name}.py")])
                 self.add_app_to_taskbar(module_name.capitalize(), process)
