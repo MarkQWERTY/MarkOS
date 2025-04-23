@@ -20,6 +20,13 @@ class ConfigWindow(QWidget):
         self.setWindowModality(Qt.ApplicationModal)
         self.setFixedSize(800, 600)
         
+        # Inicializar atributos de configuración
+        self.bg_color_value = QColor(255, 236, 139)
+        self.btn_color_value = QColor(128, 128, 128)
+        self.btn_hover_value = QColor(77, 77, 77)
+        self.taskbar_color_value = QColor(45, 45, 45)
+        self.font_value = QFont("Segoe UI", 12)
+        
         # Configurar interfaz
         self.setup_ui()
         
@@ -102,10 +109,19 @@ class ConfigWindow(QWidget):
         self.font_btn.clicked.connect(self.choose_font)
         font_layout.addRow("Fuente principal:", self.font_btn)
         
-        # Inicializar self.font_size aquí
         self.font_size = QSpinBox()
         self.font_size.setRange(8, 24)
         font_layout.addRow("Tamaño fuente:", self.font_size)
+        
+        # Inicializar self.show_clock, self.show_app_names y self.rounded_corners
+        self.show_clock = QCheckBox("Mostrar reloj")
+        layout.addWidget(self.show_clock)
+        
+        self.show_app_names = QCheckBox("Mostrar nombres de aplicaciones")
+        layout.addWidget(self.show_app_names)
+        
+        self.rounded_corners = QCheckBox("Esquinas redondeadas")
+        layout.addWidget(self.rounded_corners)
     
     def setup_apps_tab(self, tab):
         layout = QVBoxLayout()
@@ -160,6 +176,7 @@ class ConfigWindow(QWidget):
         self.animations = QCheckBox("Habilitar animaciones")
         system_layout.addRow(self.animations)
         
+        # Inicializar self.animation_speed
         self.animation_speed = QComboBox()
         self.animation_speed.addItems(["Rápido", "Normal", "Lento"])
         system_layout.addRow("Velocidad animaciones:", self.animation_speed)
@@ -226,9 +243,9 @@ class ConfigWindow(QWidget):
         self.update_font_button()
     
     def update_color_buttons(self):
-        for color_type in ["bg", "btn", "btn_hover", "taskbar"]:
+        for color_type in ["bg_color", "btn_color", "btn_hover", "taskbar_color"]:
             color = getattr(self, f"{color_type}_value")
-            btn = getattr(self, f"{color_type}_color_btn")
+            btn = getattr(self, f"{color_type}_btn")
             btn.setStyleSheet(f"background-color: {color.name()}; color: {'white' if color.lightness() < 150 else 'black'};")
     
     def update_font_button(self):
@@ -605,6 +622,9 @@ class MarkOS(QMainWindow):
                     self.add_app_to_taskbar("Telegram", process)
                 except Exception as e:
                     QMessageBox.critical(self, "Error", f"No se pudo abrir Telegram: {str(e)}")       
+            elif module_name == "config":
+                self.config_window = ConfigApp()
+                self.config_window.show()
             else:
                 script_path = os.path.join(self.SYS_PATH, f"{module_name}.py")
                 if os.name == 'nt':
@@ -755,6 +775,103 @@ class MarkOS(QMainWindow):
                     os.system("reboot")
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"No se pudo reiniciar el sistema: {str(e)}")
+
+class ConfigApp(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Configuración de MarkOS")
+        self.setFixedSize(400, 300)
+        self.settings = QSettings("MarkOS", "Configuracion")
+        
+        # Configurar interfaz
+        self.setup_ui()
+        self.load_settings()
+
+    def setup_ui(self):
+        layout = QVBoxLayout()
+        central_widget = QWidget()
+        central_widget.setLayout(layout)
+        self.setCentralWidget(central_widget)
+
+        # Configuración de colores
+        colors_group = QGroupBox("Colores")
+        colors_layout = QFormLayout()
+        colors_group.setLayout(colors_layout)
+        layout.addWidget(colors_group)
+
+        self.bg_color_btn = QPushButton("Color de fondo")
+        self.bg_color_btn.clicked.connect(lambda: self.choose_color("bg_color"))
+        colors_layout.addRow("Fondo del escritorio:", self.bg_color_btn)
+
+        self.btn_color_btn = QPushButton("Color de botones")
+        self.btn_color_btn.clicked.connect(lambda: self.choose_color("btn_color"))
+        colors_layout.addRow("Botones de apps:", self.btn_color_btn)
+
+        self.taskbar_color_btn = QPushButton("Color barra de tareas")
+        self.taskbar_color_btn.clicked.connect(lambda: self.choose_color("taskbar_color"))
+        colors_layout.addRow("Barra de tareas:", self.taskbar_color_btn)
+
+        # Configuración de tipografía
+        font_group = QGroupBox("Tipografía")
+        font_layout = QFormLayout()
+        font_group.setLayout(font_layout)
+        layout.addWidget(font_group)
+
+        self.font_btn = QPushButton("Seleccionar fuente")
+        self.font_btn.clicked.connect(self.choose_font)
+        font_layout.addRow("Fuente principal:", self.font_btn)
+
+        # Botones de acción
+        action_layout = QHBoxLayout()
+        layout.addLayout(action_layout)
+
+        save_btn = QPushButton("Guardar")
+        save_btn.clicked.connect(self.save_settings)
+        action_layout.addWidget(save_btn)
+
+        cancel_btn = QPushButton("Cancelar")
+        cancel_btn.clicked.connect(self.close)
+        action_layout.addWidget(cancel_btn)
+
+    def choose_color(self, setting_name):
+        color = QColorDialog.getColor()
+        if color.isValid():
+            setattr(self, f"{setting_name}_value", color)
+            btn = getattr(self, f"{setting_name}_btn")
+            btn.setStyleSheet(f"background-color: {color.name()}; color: {'white' if color.lightness() < 150 else 'black'};")
+
+    def choose_font(self):
+        font, ok = QFontDialog.getFont()
+        if ok:
+            self.font_value = font
+            self.font_btn.setText(f"{font.family()} {font.pointSize()}pt")
+
+    def load_settings(self):
+        self.bg_color_value = QColor(self.settings.value("colors/bg", QColor(255, 236, 139)))
+        self.btn_color_value = QColor(self.settings.value("colors/btn", QColor(128, 128, 128)))
+        self.taskbar_color_value = QColor(self.settings.value("colors/taskbar", QColor(45, 45, 45)))
+
+        font_str = self.settings.value("font/main", "Segoe UI,12")
+        font_parts = font_str.split(",")
+        self.font_value = QFont(font_parts[0], int(font_parts[1]))
+
+        self.update_color_buttons()
+        self.font_btn.setText(f"{self.font_value.family()} {self.font_value.pointSize()}pt")
+
+    def update_color_buttons(self):
+        for color_type in ["bg", "btn", "taskbar"]:
+            color = getattr(self, f"{color_type}_value")
+            btn = getattr(self, f"{color_type}_btn")
+            btn.setStyleSheet(f"background-color: {color.name()}; color: {'white' if color.lightness() < 150 else 'black'};")
+
+    def save_settings(self):
+        self.settings.setValue("colors/bg", self.bg_color_value)
+        self.settings.setValue("colors/btn", self.btn_color_value)
+        self.settings.setValue("colors/taskbar", self.taskbar_color_value)
+        self.settings.setValue("font/main", f"{self.font_value.family()},{self.font_value.pointSize()}")
+
+        QMessageBox.information(self, "Configuración", "Los cambios se han guardado correctamente.")
+        self.close()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
