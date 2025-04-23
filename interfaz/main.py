@@ -3,11 +3,298 @@ import os
 import time
 import subprocess
 import psutil
+import json
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
                             QPushButton, QLabel, QFrame, QMenu, QSystemTrayIcon, 
-                            QGridLayout, QMessageBox)
-from PyQt5.QtCore import Qt, QTimer, QPoint
-from PyQt5.QtGui import QIcon, QPalette, QColor
+                            QGridLayout, QMessageBox, QTabWidget, QLineEdit, 
+                            QComboBox, QCheckBox, QColorDialog, QFontDialog,
+                            QSpinBox, QFileDialog, QGroupBox, QFormLayout)
+from PyQt5.QtCore import Qt, QTimer, QPoint, QSettings
+from PyQt5.QtGui import QIcon, QPalette, QColor, QFont
+
+class ConfigWindow(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.parent = parent
+        self.setWindowTitle("Configuración de MarkOS")
+        self.setWindowModality(Qt.ApplicationModal)
+        self.setFixedSize(800, 600)
+        
+        # Cargar configuración actual
+        self.settings = QSettings("MarkOS", "Configuracion")
+        self.load_settings()
+        
+        # Configurar interfaz
+        self.setup_ui()
+        
+    def setup_ui(self):
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+        
+        # Pestañas de configuración
+        tabs = QTabWidget()
+        layout.addWidget(tabs)
+        
+        # Pestaña de Apariencia
+        appearance_tab = QWidget()
+        tabs.addTab(appearance_tab, "Apariencia")
+        self.setup_appearance_tab(appearance_tab)
+        
+        # Pestaña de Aplicaciones
+        apps_tab = QWidget()
+        tabs.addTab(apps_tab, "Aplicaciones")
+        self.setup_apps_tab(apps_tab)
+        
+        # Pestaña de Sistema
+        system_tab = QWidget()
+        tabs.addTab(system_tab, "Sistema")
+        self.setup_system_tab(system_tab)
+        
+        # Botones de acción
+        btn_layout = QHBoxLayout()
+        layout.addLayout(btn_layout)
+        
+        save_btn = QPushButton("Guardar")
+        save_btn.clicked.connect(self.save_settings)
+        btn_layout.addWidget(save_btn)
+        
+        cancel_btn = QPushButton("Cancelar")
+        cancel_btn.clicked.connect(self.close)
+        btn_layout.addWidget(cancel_btn)
+        
+        reset_btn = QPushButton("Restaurar predeterminados")
+        reset_btn.clicked.connect(self.reset_defaults)
+        btn_layout.addWidget(reset_btn)
+    
+    def setup_appearance_tab(self, tab):
+        layout = QVBoxLayout()
+        tab.setLayout(layout)
+        
+        # Grupo de colores
+        colors_group = QGroupBox("Colores")
+        colors_layout = QFormLayout()
+        colors_group.setLayout(colors_layout)
+        layout.addWidget(colors_group)
+        
+        self.bg_color_btn = QPushButton("Color de fondo")
+        self.bg_color_btn.clicked.connect(lambda: self.choose_color("bg_color"))
+        colors_layout.addRow("Fondo principal:", self.bg_color_btn)
+        
+        self.btn_color_btn = QPushButton("Color de botones")
+        self.btn_color_btn.clicked.connect(lambda: self.choose_color("btn_color"))
+        colors_layout.addRow("Botones principales:", self.btn_color_btn)
+        
+        self.btn_hover_btn = QPushButton("Color hover")
+        self.btn_hover_btn.clicked.connect(lambda: self.choose_color("btn_hover"))
+        colors_layout.addRow("Botones (hover):", self.btn_hover_btn)
+        
+        self.taskbar_color_btn = QPushButton("Color barra tareas")
+        self.taskbar_color_btn.clicked.connect(lambda: self.choose_color("taskbar_color"))
+        colors_layout.addRow("Barra de tareas:", self.taskbar_color_btn)
+        
+        # Grupo de fuentes
+        font_group = QGroupBox("Fuentes")
+        font_layout = QFormLayout()
+        font_group.setLayout(font_layout)
+        layout.addWidget(font_group)
+        
+        self.font_btn = QPushButton("Seleccionar fuente")
+        self.font_btn.clicked.connect(self.choose_font)
+        font_layout.addRow("Fuente principal:", self.font_btn)
+        
+        self.font_size = QSpinBox()
+        self.font_size.setRange(8, 24)
+        font_layout.addRow("Tamaño fuente:", self.font_size)
+        
+        # Opciones de visualización
+        display_group = QGroupBox("Visualización")
+        display_layout = QVBoxLayout()
+        display_group.setLayout(display_layout)
+        layout.addWidget(display_group)
+        
+        self.show_clock = QCheckBox("Mostrar reloj en barra de tareas")
+        display_layout.addWidget(self.show_clock)
+        
+        self.show_app_names = QCheckBox("Mostrar nombres en botones de aplicaciones")
+        display_layout.addWidget(self.show_app_names)
+        
+        self.rounded_corners = QCheckBox("Esquinas redondeadas")
+        display_layout.addWidget(self.rounded_corners)
+    
+    def setup_apps_tab(self, tab):
+        layout = QVBoxLayout()
+        tab.setLayout(layout)
+        
+        # Rutas de aplicaciones
+        paths_group = QGroupBox("Rutas de aplicaciones")
+        paths_layout = QFormLayout()
+        paths_group.setLayout(paths_layout)
+        layout.addWidget(paths_group)
+        
+        self.terminal_path = QLineEdit()
+        paths_layout.addRow("Terminal:", self.terminal_path)
+        
+        self.file_manager_path = QLineEdit()
+        paths_layout.addRow("Gestor de archivos:", self.file_manager_path)
+        
+        self.browser_path = QLineEdit()
+        paths_layout.addRow("Navegador web:", self.browser_path)
+        
+        # Comportamiento de aplicaciones
+        behavior_group = QGroupBox("Comportamiento")
+        behavior_layout = QVBoxLayout()
+        behavior_group.setLayout(behavior_layout)
+        layout.addWidget(behavior_group)
+        
+        self.minimize_on_close = QCheckBox("Minimizar en lugar de cerrar")
+        behavior_layout.addWidget(self.minimize_on_close)
+        
+        self.confirm_app_close = QCheckBox("Confirmar antes de cerrar aplicaciones")
+        behavior_layout.addWidget(self.confirm_app_close)
+        
+        self.remember_open_apps = QCheckBox("Recordar aplicaciones abiertas")
+        behavior_layout.addWidget(self.remember_open_apps)
+    
+    def setup_system_tab(self, tab):
+        layout = QVBoxLayout()
+        tab.setLayout(layout)
+        
+        # Comportamiento del sistema
+        system_group = QGroupBox("Comportamiento del sistema")
+        system_layout = QFormLayout()
+        system_group.setLayout(system_layout)
+        layout.addWidget(system_group)
+        
+        self.start_maximized = QCheckBox("Iniciar maximizado")
+        system_layout.addRow(self.start_maximized)
+        
+        self.show_taskbar = QCheckBox("Mostrar barra de tareas")
+        system_layout.addRow(self.show_taskbar)
+        
+        self.animations = QCheckBox("Habilitar animaciones")
+        system_layout.addRow(self.animations)
+        
+        self.animation_speed = QComboBox()
+        self.animation_speed.addItems(["Rápido", "Normal", "Lento"])
+        system_layout.addRow("Velocidad animaciones:", self.animation_speed)
+        
+        # Opciones de energía
+        power_group = QGroupBox("Opciones de energía")
+        power_layout = QVBoxLayout()
+        power_group.setLayout(power_layout)
+        layout.addWidget(power_group)
+        
+        self.confirm_shutdown = QCheckBox("Confirmar antes de apagar")
+        power_layout.addWidget(self.confirm_shutdown)
+        
+        self.confirm_reboot = QCheckBox("Confirmar antes de reiniciar")
+        power_layout.addWidget(self.confirm_reboot)
+    
+    def choose_color(self, setting_name):
+        color = QColorDialog.getColor()
+        if color.isValid():
+            setattr(self, f"{setting_name}_value", color)
+            btn = getattr(self, f"{setting_name}_btn")
+            btn.setStyleSheet(f"background-color: {color.name()}; color: {'white' if color.lightness() < 150 else 'black'};")
+    
+    def choose_font(self):
+        font, ok = QFontDialog.getFont()
+        if ok:
+            self.font_value = font
+            self.font_btn.setText(f"{font.family()} {font.pointSize()}pt")
+    
+    def load_settings(self):
+        # Cargar configuración desde QSettings o usar valores por defecto
+        self.bg_color_value = QColor(self.settings.value("colors/bg", QColor(255, 236, 139)))
+        self.btn_color_value = QColor(self.settings.value("colors/btn", QColor(128, 128, 128)))
+        self.btn_hover_value = QColor(self.settings.value("colors/btn_hover", QColor(77, 77, 77)))
+        self.taskbar_color_value = QColor(self.settings.value("colors/taskbar", QColor(45, 45, 45)))
+        
+        font_str = self.settings.value("font/main", "Segoe UI,12")
+        font_parts = font_str.split(",")
+        self.font_value = QFont(font_parts[0], int(font_parts[1]))
+        
+        self.font_size.setValue(self.settings.value("font/size", 12, type=int))
+        self.show_clock.setChecked(self.settings.value("display/show_clock", True, type=bool))
+        self.show_app_names.setChecked(self.settings.value("display/show_app_names", True, type=bool))
+        self.rounded_corners.setChecked(self.settings.value("display/rounded_corners", True, type=bool))
+        
+        self.terminal_path.setText(self.settings.value("apps/terminal", "gnome-terminal" if os.name != 'nt' else "cmd.exe"))
+        self.file_manager_path.setText(self.settings.value("apps/file_manager", "nautilus" if os.name != 'nt' else "explorer"))
+        self.browser_path.setText(self.settings.value("apps/browser", "firefox"))
+        
+        self.minimize_on_close.setChecked(self.settings.value("behavior/minimize_on_close", False, type=bool))
+        self.confirm_app_close.setChecked(self.settings.value("behavior/confirm_app_close", True, type=bool))
+        self.remember_open_apps.setChecked(self.settings.value("behavior/remember_open_apps", False, type=bool))
+        
+        self.start_maximized.setChecked(self.settings.value("system/start_maximized", True, type=bool))
+        self.show_taskbar.setChecked(self.settings.value("system/show_taskbar", True, type=bool))
+        self.animations.setChecked(self.settings.value("system/animations", True, type=bool))
+        self.animation_speed.setCurrentText(self.settings.value("system/animation_speed", "Normal"))
+        
+        self.confirm_shutdown.setChecked(self.settings.value("power/confirm_shutdown", True, type=bool))
+        self.confirm_reboot.setChecked(self.settings.value("power/confirm_reboot", True, type=bool))
+        
+        # Actualizar botones de color
+        self.update_color_buttons()
+        self.update_font_button()
+    
+    def update_color_buttons(self):
+        for color_type in ["bg", "btn", "btn_hover", "taskbar"]:
+            color = getattr(self, f"{color_type}_value")
+            btn = getattr(self, f"{color_type}_color_btn")
+            btn.setStyleSheet(f"background-color: {color.name()}; color: {'white' if color.lightness() < 150 else 'black'};")
+    
+    def update_font_button(self):
+        self.font_btn.setText(f"{self.font_value.family()} {self.font_value.pointSize()}pt")
+    
+    def save_settings(self):
+        # Guardar configuración en QSettings
+        self.settings.setValue("colors/bg", self.bg_color_value)
+        self.settings.setValue("colors/btn", self.btn_color_value)
+        self.settings.setValue("colors/btn_hover", self.btn_hover_value)
+        self.settings.setValue("colors/taskbar", self.taskbar_color_value)
+        
+        self.settings.setValue("font/main", f"{self.font_value.family()},{self.font_value.pointSize()}")
+        self.settings.setValue("font/size", self.font_size.value())
+        self.settings.setValue("display/show_clock", self.show_clock.isChecked())
+        self.settings.setValue("display/show_app_names", self.show_app_names.isChecked())
+        self.settings.setValue("display/rounded_corners", self.rounded_corners.isChecked())
+        
+        self.settings.setValue("apps/terminal", self.terminal_path.text())
+        self.settings.setValue("apps/file_manager", self.file_manager_path.text())
+        self.settings.setValue("apps/browser", self.browser_path.text())
+        
+        self.settings.setValue("behavior/minimize_on_close", self.minimize_on_close.isChecked())
+        self.settings.setValue("behavior/confirm_app_close", self.confirm_app_close.isChecked())
+        self.settings.setValue("behavior/remember_open_apps", self.remember_open_apps.isChecked())
+        
+        self.settings.setValue("system/start_maximized", self.start_maximized.isChecked())
+        self.settings.setValue("system/show_taskbar", self.show_taskbar.isChecked())
+        self.settings.setValue("system/animations", self.animations.isChecked())
+        self.settings.setValue("system/animation_speed", self.animation_speed.currentText())
+        
+        self.settings.setValue("power/confirm_shutdown", self.confirm_shutdown.isChecked())
+        self.settings.setValue("power/confirm_reboot", self.confirm_reboot.isChecked())
+        
+        # Aplicar cambios en tiempo real
+        if self.parent:
+            self.parent.apply_settings()
+        
+        QMessageBox.information(self, "Configuración", "Los cambios se han guardado correctamente.")
+        self.close()
+    
+    def reset_defaults(self):
+        reply = QMessageBox.question(
+            self, 'Restaurar predeterminados', 
+            '¿Está seguro que desea restaurar todos los valores predeterminados?',
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
+        )
+        
+        if reply == QMessageBox.Yes:
+            self.settings.clear()
+            self.load_settings()
+            QMessageBox.information(self, "Configuración", "Se han restaurado los valores predeterminados.")
 
 class WindowManager:
     def __init__(self):
@@ -46,8 +333,12 @@ class MarkOS(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("MarkOS")
+        self.settings = QSettings("MarkOS", "Configuracion")
         self.setWindowFlags(Qt.WindowMaximizeButtonHint | Qt.WindowCloseButtonHint | Qt.FramelessWindowHint)
         self.showMaximized()  # Mostrar en pantalla maximizada en lugar de pantalla completa
+
+        # Configuración inicial
+        self.load_initial_settings()
         
         self.window_manager = WindowManager()
         self.open_apps = {}
@@ -55,9 +346,6 @@ class MarkOS(QMainWindow):
 
         self.PYROUTE = "python3"
         self.SYS_PATH = os.path.dirname(os.path.abspath(__file__))
-        self.BG_COLOR = QColor(255, 236, 139)  # khaki1 equivalente
-        self.BTN_COLOR = QColor(128, 128, 128)  # gray
-        self.BTN_HOVER = QColor(77, 77, 77)    # gray30
         
         # Configurar el widget central
         central_widget = QWidget()
@@ -70,19 +358,12 @@ class MarkOS(QMainWindow):
         
         # Sección de aplicaciones
         self.apps_section = QWidget()
-        self.apps_section.setStyleSheet(f"""
-            background-color: {self.BG_COLOR.name()};
-            border-radius: 15px;
-            margin: 20px;
-        """)
+        self.update_apps_section_style()
         main_layout.addWidget(self.apps_section, 1)
         
         # Barra de tareas
         self.taskbar = QFrame()
-        self.taskbar.setStyleSheet("""
-            background-color: #2d2d2d;
-            border-top: 1px solid #444;
-        """)
+        self.update_taskbar_style()
         self.taskbar.setFixedHeight(50)
         main_layout.addWidget(self.taskbar)
         
@@ -97,7 +378,74 @@ class MarkOS(QMainWindow):
         
         # Mostrar la hora inicial
         self.update_clock()
+        
+        # Mostrar según configuración
+        if self.settings.value("system/start_maximized", True, type=bool):
+            self.showMaximized()
+        else:
+            self.show()
     
+    def load_initial_settings(self):
+        """Cargar configuración inicial desde QSettings"""
+        self.BG_COLOR = QColor(self.settings.value("colors/bg", QColor(255, 236, 139)))
+        self.BTN_COLOR = QColor(self.settings.value("colors/btn", QColor(128, 128, 128)))
+        self.BTN_HOVER = QColor(self.settings.value("colors/btn_hover", QColor(77, 77, 77)))
+        self.TASKBAR_COLOR = QColor(self.settings.value("colors/taskbar", QColor(45, 45, 45)))
+        
+        # Configurar paleta de colores
+        palette = QPalette()
+        palette.setColor(QPalette.Window, QColor(53, 53, 53))
+        palette.setColor(QPalette.WindowText, Qt.white)
+        palette.setColor(QPalette.Base, QColor(25, 25, 25))
+        palette.setColor(QPalette.AlternateBase, QColor(53, 53, 53))
+        palette.setColor(QPalette.ToolTipBase, Qt.white)
+        palette.setColor(QPalette.ToolTipText, Qt.white)
+        palette.setColor(QPalette.Text, Qt.white)
+        palette.setColor(QPalette.Button, QColor(53, 53, 53))
+        palette.setColor(QPalette.ButtonText, Qt.white)
+        palette.setColor(QPalette.BrightText, Qt.red)
+        palette.setColor(QPalette.Link, QColor(42, 130, 218))
+        palette.setColor(QPalette.Highlight, QColor(42, 130, 218))
+        palette.setColor(QPalette.HighlightedText, Qt.black)
+        QApplication.instance().setPalette(palette)
+    
+    def apply_settings(self):
+        """Aplicar cambios de configuración en tiempo real"""
+        self.load_initial_settings()
+        self.update_apps_section_style()
+        self.update_taskbar_style()
+        
+        # Actualizar visibilidad del reloj
+        self.clock_label.setVisible(self.settings.value("display/show_clock", True, type=bool))
+        
+        # Reconstruir la sección de aplicaciones si es necesario
+        if hasattr(self, 'show_app_names'):
+            self.setup_apps_section()
+    
+    def update_apps_section_style(self):
+        """Actualizar el estilo de la sección de aplicaciones"""
+        radius = "15px" if self.settings.value("display/rounded_corners", True, type=bool) else "0px"
+        self.apps_section.setStyleSheet(f"""
+            background-color: {self.BG_COLOR.name()};
+            border-radius: {radius};
+            margin: 20px;
+        """)
+    
+    def update_taskbar_style(self):
+        """Actualizar el estilo de la barra de tareas"""
+        self.taskbar.setStyleSheet(f"""
+            background-color: {self.TASKBAR_COLOR.name()};
+            border-top: 1px solid #444;
+        """)
+    
+    def open_settings(self):
+        if hasattr(self, 'config_window') and self.config_window.isVisible():
+            self.config_window.raise_()
+            self.config_window.activateWindow()
+        else:
+            self.config_window = ConfigWindow(self)
+            self.config_window.show()
+
     def setup_apps_section(self):
         layout = QGridLayout(self.apps_section)
         layout.setContentsMargins(30, 30, 30, 30)
@@ -419,28 +767,7 @@ class MarkOS(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    
     # Establecer estilo fusion para mejor apariencia
     app.setStyle("Fusion")
-    
-    # Configurar paleta de colores
-    palette = QPalette()
-    palette.setColor(QPalette.Window, QColor(53, 53, 53))
-    palette.setColor(QPalette.WindowText, Qt.white)
-    palette.setColor(QPalette.Base, QColor(25, 25, 25))
-    palette.setColor(QPalette.AlternateBase, QColor(53, 53, 53))
-    palette.setColor(QPalette.ToolTipBase, Qt.white)
-    palette.setColor(QPalette.ToolTipText, Qt.white)
-    palette.setColor(QPalette.Text, Qt.white)
-    palette.setColor(QPalette.Button, QColor(53, 53, 53))
-    palette.setColor(QPalette.ButtonText, Qt.white)
-    palette.setColor(QPalette.BrightText, Qt.red)
-    palette.setColor(QPalette.Link, QColor(42, 130, 218))
-    palette.setColor(QPalette.Highlight, QColor(42, 130, 218))
-    palette.setColor(QPalette.HighlightedText, Qt.black)
-    app.setPalette(palette)
-    
     main_window = MarkOS()
-    main_window.show()
-    
     sys.exit(app.exec_())
