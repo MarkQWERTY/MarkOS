@@ -1,105 +1,131 @@
-# MarkOS - A Minimalist OS with Clean Interface
+# 🌐 MarkOS - Sistema Operativo Minimalista  
 
-MarkOS is a minimalist operating system focused on providing a clean user interface experience. Built primarily as an educational project, it offers a lightweight alternative to traditional operating systems.
+**📌 Un SO educativo con interfaz intuitiva y herramientas integradas**  
 
-## Table of Contents
-- [Core Interface Features](#core-interface-features)
-- [Shell Capabilities](#shell-capabilities)
-- [Interface Customization](#interface-customization)
-- [System Requirements](#system-requirements)
-- [Installation](#installation)
-- [Contributing](#contributing)
+![MarkOS Logo](https://raw.githubusercontent.com/MarkQWERTY/MarkOS/main/assets/logo.png)  
 
-## Core Interface Features
-
-The heart of MarkOS's interface lies in [`interfaz/main.py`](https://github.com/MarkQWERTY/MarkOS/blob/main/interfaz/main.py), which provides:
-
-### Visual Components
-- **Dual display modes**: 80x25 (standard) and 80x50 (extended) character support
-- **Status bar**: Shows system time, active theme, and command hints
-- **Input panel**: Clearly delineated command entry area with blinking cursor
-- **Message system**: Consistent formatting for system alerts and responses
-
-### Interactive Elements
-- **Theme system**: Switch between multiple color schemes on-the-fly
-- **Visual feedback**: Immediate response to user actions
-- **Error handling**: Clear visual indication of invalid commands
-
-### Technical Implementation
-- **Modular design**: Easy to extend with new interface components
-- **Low overhead**: Optimized for minimal resource usage
-- **Responsive**: Maintains performance even on legacy hardware
-
-## Shell Capabilities
-
-While secondary to the interface, MarkOS includes a functional shell:
-
-- **Basic command set**: File navigation, system control
-- **History**: Scroll through previous commands
-- **Help system**: Built-in documentation
-
-## System Requirements
-
-- x86-compatible processor
-- 512KB RAM minimum
-- Bootable storage device
-
-## Installation
-
-1. [Download the latest ISO](https://github.com/MarkQWERTY/MarkOS/releases)
-2. Create bootable media (`dd` or similar tool)
-3. Configure BIOS to boot from device
-4. Follow on-screen instructions
-
-## Contributing
-
-We welcome contributions! Please:
-- Open an [issue](https://github.com/MarkQWERTY/MarkOS/issues) for bugs/features
-- Submit a [pull request](https://github.com/MarkQWERTY/MarkOS/pulls) for improvements
-- See our [contribution guidelines](CONTRIBUTING.md)
+🔹 [**Jump to English Version**](#-markos---minimalist-operating-system)  
 
 ---
 
-*MarkOS - Simple OS for complex learning*
+## 🖥️ **Interfaz Principal (`interfaz/main.py`)**  
+El corazón del sistema, con:  
+- **🔄 Sistema modular** para cargar aplicaciones (navegador, calculadora, etc.)  
+- **🎨 Gestión de temas** integrada (colores y disposición visual)  
+- **📟 Barra de estado** con información del sistema  
+- **⌨️ Soporte para entrada/salida** mediante librerías estándar de Python  
 
-# MarkOS - Un Sistema Operativo Minimalista con Interfaz Intuitiva
+### 📚 **Librerías requeridas**:  
+```bash
+# Para la interfaz principal:
+pip install pygments prompt_toolkit
 
-MarkOS es un sistema operativo minimalista con enfoque en una interfaz de usuario limpia. Desarrollado como proyecto educativo, ofrece una alternativa ligera a los SO tradicionales.
+# Para el navegador web (webs.py):
+pip install requests beautifulsoup4
 
-## Características Principales de la Interfaz
-
-El núcleo de la interfaz está en [`interfaz/main.py`](https://github.com/MarkQWERTY/MarkOS/blob/main/interfaz/main.py):
-
-### Componentes Visuales
-- **Dos modos de pantalla**: 80x25 (estándar) y 80x50 (extendido)
-- **Barra de estado**: Muestra hora, tema activo y ayudas
-- **Área de comandos**: Delimitada claramente con cursor parpadeante
-- **Sistema de mensajes**: Formato consistente para alertas
-
-### Elementos Interactivos
-- **Sistema de temas**: Cambia esquemas de color al instante
-- **Retroalimentación**: Respuesta inmediata a acciones
-- **Manejo de errores**: Indicación clara de comandos inválidos
-
-### Implementación Técnica
-- **Diseño modular**: Fácil extensión con nuevos componentes
-- **Bajo consumo**: Optimizado para hardware limitado
-- **Respuesta ágil**: Buen rendimiento incluso en hardware antiguo
-
-## Requisitos e Instalación
-
-- Procesador x86 compatible
-- 512KB RAM mínimo
-- Graba en medio booteable
-- Configura la BIOS para arrancar
-
-## Contribuciones
-
-¡Contribuciones son bienvenidas!:
-- Abre un [issue](https://github.com/MarkQWERTY/MarkOS/issues)
-- Envía un [pull request](https://github.com/MarkQWERTY/MarkOS/pulls)
-- Revisa las [guías de contribución](CONTRIBUTING.md)
+# Para la calculadora (calc.py):
+pip install numpy  # Opcional para operaciones avanzadas
+```
 
 ---
 
-*MarkOS - Sistema simple para aprendizajes complejos*
+## 🛠️ **Aplicaciones Integradas**  
+
+### 🌍 **Navegador Web (`webs.py`)**  
+- **📡 Soporte para HTTP/HTTPS básico**  
+- **🔍 Parser de HTML simplificado** (usando BeautifulSoup)  
+- **📂 Historial de navegación local**  
+
+### 🧮 **Calculadora (`calc.py`)**  
+- **🔢 Operaciones básicas** (+, -, *, /)  
+- **📊 Funciones avanzadas** (logaritmos, potencias)  
+- **📈 Modo científico** (activado con `--sci`)  
+
+### 🚀 **Ejecutador de Comandos (`ejecutar.py`)**  
+- **⚡ Ejecuta archivos `.py` y `.sh`**  
+- **📂 Navegación por directorios**  
+- **🔧 Permisos básicos** (lectura/escritura)  
+
+---
+
+## ⚙️ **Instalación Automatizada**  
+Ejecuta el instalador para configurar todo:  
+```bash
+chmod +x installer.sh  
+./installer.sh  # ✔️ Instala dependencias y configura el entorno
+```
+
+---
+
+## 📌 ¿Cómo Contribuir?  
+1. 🐞 Reporta bugs en [Issues](https://github.com/MarkQWERTY/MarkOS/issues)  
+2. 💡 Sugiere nuevas features  
+3. 🛠️ Envía un *Pull Request*  
+
+---
+
+# 🌐 **MarkOS - Minimalist Operating System**  
+
+**📌 An educational OS with intuitive UI & built-in tools**  
+
+🔹 [**Versión en español**](#-markos---sistema-operativo-minimalista)  
+
+---
+
+## 🖥️ **Main Interface (`interfaz/main.py`)**  
+The system core features:  
+- **🔄 Modular design** to load apps (browser, calculator, etc.)  
+- **🎨 Built-in theme engine** (colors & layout)  
+- **📟 Status bar** with system info  
+- **⌨️ I/O handling** via Python standard libraries  
+
+### 📚 **Required Libraries**:  
+```bash
+# For main interface:
+pip install pygments prompt_toolkit
+
+# For web browser (webs.py):
+pip install requests beautifulsoup4
+
+# For calculator (calc.py):
+pip install numpy  # Optional for advanced math
+```
+
+---
+
+## 🛠️ **Built-in Apps**  
+
+### 🌍 **Web Browser (`webs.py`)**  
+- **📡 Basic HTTP/HTTPS support**  
+- **🔍 Simplified HTML parser** (BeautifulSoup-based)  
+- **📂 Local browsing history**  
+
+### � **Calculator (`calc.py`)**  
+- **🔢 Basic operations** (+, -, *, /)  
+- **📊 Advanced functions** (logarithms, powers)  
+- **📈 Scientific mode** (enable with `--sci`)  
+
+### 🚀 **Command Runner (`ejecutar.py`)**  
+- **⚡ Runs `.py` & `.sh` files**  
+- **📂 Directory navigation**  
+- **🔧 Basic permissions** (read/write)  
+
+---
+
+## ⚙️ **Auto-Installation**  
+Run the installer to set up everything:  
+```bash
+chmod +x installer.sh  
+./installer.sh  # ✔️ Sets up dependencies & environment
+```
+
+---
+
+## 📌 How to Contribute?  
+1. 🐞 Report bugs in [Issues](https://github.com/MarkQWERTY/MarkOS/issues)  
+2. 💡 Suggest new features  
+3. 🛠️ Submit a *Pull Request*  
+
+--- 
+
+**🎯 ¡Simple, educativo y extensible! / Simple, educational & extensible!**
