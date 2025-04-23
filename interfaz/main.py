@@ -610,7 +610,7 @@ class MarkOS(QMainWindow):
                     process = subprocess.Popen(["cmd.exe", "/k", "bash shell_interactiva.sh"])
                 else:
                     script_path = os.path.join(self.SYS_PATH, "shell_interactiva.sh")
-                    process = subprocess.Popen(["gnome-terminal", "--", "bash", script_path])
+                    process = subprocess.Popen(["gnome-terminal", "--", "bash", "../shell/shell_interactiva.sh"])
                 self.add_app_to_taskbar("Terminal", process)
                 
             elif module_name == "file":
