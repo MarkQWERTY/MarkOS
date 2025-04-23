@@ -5,10 +5,10 @@ start(){
     sleep 5
     clear
     echo "____________________________________________________________________________"
-    figlet -c "GameSportOS"
+    figlet -c "MarkOS"
     echo "____________________________________________________________________________"
     echo ""
-    echo "Bienvenido, $USER a la GameSportOS interactiva."
+    echo "Bienvenido, $USER a la MarkOS interactiva."
     echo -e "\e[38;5;51m"
     echo "  _____________________________________________________________"
     echo " /                                                             \\"
@@ -26,7 +26,7 @@ start(){
     echo "|  ·help       : Muestra este menú de ayuda.                    |"    
     echo "|  ·exit       : Sale de la shell interactiva.                  |"
     echo "|                                                               |"
-    echo "|  Más informacion en https://github.com/MarkQWERTY/GameSportOS |"
+    echo "|  Más informacion en https://github.com/MarkQWERTY/MarkOS      |"
     echo " \\_____________________________________________________________/"
     echo -e "\e[0m"
 }
@@ -54,7 +54,7 @@ game(){
     echo "|                                                               |"
     echo "|                       Saldo: $saldo                              |"
     echo "|                                                               |"
-    echo "|  Más informacion en https://github.com/MarkQWERTY/GameSportOS |"
+    echo "|  Más informacion en https://github.com/MarkQWERTY/MarkOS      |"
     echo " \\_____________________________________________________________/"
     echo -e "\e[0m"
     
@@ -242,7 +242,7 @@ help() {
     echo "|  ·help       : Muestra este menú de ayuda.                    |"    
     echo "|  ·exit       : Sale de la shell interactiva.                  |"
     echo "|                                                               |"
-    echo "|  Más informacion en https://github.com/MarkQWERTY/GameSportOS |"
+    echo "|  Más informacion en https://github.com/MarkQWERTY/MarkOS      |"
     echo " \\_____________________________________________________________/"
     echo -e "\e[0m"
 }
@@ -344,7 +344,7 @@ news(){
         echo "|  ·Hola: hola                                                  |"
         echo "|  ·Cualquier Periodico: -p https://paginaweb.com               |"    
         echo "|                                                               |"
-        echo "|  Más informacion en https://github.com/MarkQWERTY/GameSportOS |"
+        echo "|  Más informacion en https://github.com/MarkQWERTY/MarkOS      |"
         echo " \\_____________________________________________________________/"
         echo -e "\e[0m"
     else
