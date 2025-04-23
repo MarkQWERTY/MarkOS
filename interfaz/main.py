@@ -17,8 +17,9 @@ class ConfigWindow(QWidget):
         super().__init__(parent)
         self.parent = parent
         self.setWindowTitle("Configuración de MarkOS")
-        self.setWindowModality(Qt.ApplicationModal)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.Window)
         self.setFixedSize(800, 600)
+        self.dragging = False  # Estado para detectar si se está arrastrando la ventana
         
         # Inicializar atributos de configuración
         self.bg_color_value = QColor(255, 236, 139)
@@ -33,6 +34,25 @@ class ConfigWindow(QWidget):
         # Cargar configuración actual (mover aquí después de inicializar la interfaz)
         self.settings = QSettings("MarkOS", "Configuracion")
         self.load_settings()
+        
+    def mousePressEvent(self, event):
+        """Detectar el inicio del arrastre."""
+        if event.button() == Qt.LeftButton:
+            self.dragging = True
+            self.drag_start_position = event.globalPos() - self.frameGeometry().topLeft()
+            event.accept()
+
+    def mouseMoveEvent(self, event):
+        """Mover la ventana mientras se arrastra."""
+        if self.dragging:
+            self.move(event.globalPos() - self.drag_start_position)
+            event.accept()
+
+    def mouseReleaseEvent(self, event):
+        """Finalizar el arrastre."""
+        if event.button() == Qt.LeftButton:
+            self.dragging = False
+            event.accept()
         
     def setup_ui(self):
         layout = QVBoxLayout()
