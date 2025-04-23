@@ -20,12 +20,12 @@ class ConfigWindow(QWidget):
         self.setWindowModality(Qt.ApplicationModal)
         self.setFixedSize(800, 600)
         
-        # Cargar configuración actual
-        self.settings = QSettings("MarkOS", "Configuracion")
-        self.load_settings()
-        
         # Configurar interfaz
         self.setup_ui()
+        
+        # Cargar configuración actual (mover aquí después de inicializar la interfaz)
+        self.settings = QSettings("MarkOS", "Configuracion")
+        self.load_settings()
         
     def setup_ui(self):
         layout = QVBoxLayout()
@@ -102,24 +102,10 @@ class ConfigWindow(QWidget):
         self.font_btn.clicked.connect(self.choose_font)
         font_layout.addRow("Fuente principal:", self.font_btn)
         
+        # Inicializar self.font_size aquí
         self.font_size = QSpinBox()
         self.font_size.setRange(8, 24)
         font_layout.addRow("Tamaño fuente:", self.font_size)
-        
-        # Opciones de visualización
-        display_group = QGroupBox("Visualización")
-        display_layout = QVBoxLayout()
-        display_group.setLayout(display_layout)
-        layout.addWidget(display_group)
-        
-        self.show_clock = QCheckBox("Mostrar reloj en barra de tareas")
-        display_layout.addWidget(self.show_clock)
-        
-        self.show_app_names = QCheckBox("Mostrar nombres en botones de aplicaciones")
-        display_layout.addWidget(self.show_app_names)
-        
-        self.rounded_corners = QCheckBox("Esquinas redondeadas")
-        display_layout.addWidget(self.rounded_corners)
     
     def setup_apps_tab(self, tab):
         layout = QVBoxLayout()
@@ -453,7 +439,7 @@ class MarkOS(QMainWindow):
         layout.setAlignment(Qt.AlignCenter)
         
         apps = [
-            ("⚙️ Configuración", self.open_settings),
+            ("⚙️ Configuración", lambda: self.open_settings()),
             ("🌐 Navegador", lambda: self.open_app("webs")),
             ("📁 Archivos", lambda: self.open_app("file")),
             ("📟 Terminal", lambda: self.open_app("terminal")),
@@ -573,7 +559,12 @@ class MarkOS(QMainWindow):
                 QMessageBox.critical(self, "Error", f"No se pudo cerrar sesión: {str(e)}")
     
     def open_settings(self):
-        QMessageBox.information(self, "Configuración", "Sistema de configuración abierto")
+        if hasattr(self, 'config_window') and self.config_window.isVisible():
+            self.config_window.raise_()
+            self.config_window.activateWindow()
+        else:
+            self.config_window = ConfigWindow(self)
+            self.config_window.show()
     
     def open_app(self, module_name):
         try:
