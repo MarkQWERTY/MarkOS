@@ -49,10 +49,12 @@ pip install numpy  # Opcional para operaciones avanzadas
 ---
 
 ## ⚙️ **Instalación Automatizada**  
-Ejecuta el instalador para configurar todo:  
+Ejecuta la siguiente linea de comandos 
 ```bash
-chmod +x installer.sh  
-./installer.sh  # ✔️ Instala dependencias y configura el entorno
+sudo apt install python3-tk python3-pyqt5 python3-pyqt5.qtwebengine python3-psutil
+git clone "https://github.com/MarkQWERTY/MarkOS" #Copia el repositorio
+cd MarkOS/interfaz
+python3 main.py
 ```
 
 ---
